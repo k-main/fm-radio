@@ -5,13 +5,12 @@
 #define SW 4
 #define cs A0
 
+
+
 /*
 PLL value formula -> N = 4(F(RF) + F(IF)) / F(REF)
 where IF = 225*10^3 and REF = 32768
 */
-
-
-
 
 const int RS = 5, EN = 6, D4 = 7, D5 = 8, D6 = 9, D7 = 10;
 LiquidCrystal lcd(RS, EN, D4, D5, D6, D7);
@@ -50,7 +49,6 @@ void rotary_init() {
   pinMode(DT, INPUT);
   pinMode(SW, INPUT_PULLUP);
   pinMode(cs,OUTPUT);
-  Serial.begin(9600);
 }
 
 void radio_init() {
@@ -67,6 +65,12 @@ void radio_init() {
 
   Wire.begin();
   Wire.beginTransmission(0x60); // 0X60 is the module address
+  // Wire.write(0x2A);
+  // Wire.write(0x36);
+  // Wire.write(0x10);
+  // Wire.write(0x10);
+  // Wire.write(0x40);
+
   Wire.write(frequencyH);
   Wire.write(frequencyL);
   Wire.write(0xB0);
@@ -78,9 +82,11 @@ void radio_init() {
 void setup() {
   // put your setup code here, to run once:
   // radio_init();
+  Serial.begin(9600);
   menu_init();
   rotary_init();
   last_clk = digitalRead(CLK);
+  radio_init();
 }
 
 void loop() {
