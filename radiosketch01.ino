@@ -19,23 +19,30 @@ int last_clk, current_clk, btn_state, counter = 0;
 unsigned long last_btn_press = 0;
 String c_direction;
 
+typedef enum {
+  CONTROL_STATION,
+  CONTROL_VOLUME
+} ControlState;
+
+ControlState control = CONTROL_STATION;
 int disp_mode = 0;
 
-void set_displaymode(int& current_mode) {
-  if (current_mode == 0) {
-    current_mode = 1;
+void set_controlstate(ControlState& current_state) {
+  if (current_state == CONTROL_STATION) {
+    current_state = CONTROL_VOLUME;
     lcd.setCursor(0, 0);
     lcd.print(" ");
     lcd.setCursor(0, 1);
     lcd.print("~");
   } else {
-    current_mode = 0;
+    current_state = CONTROL_STATION;
     lcd.setCursor(0, 1);
     lcd.print(" ");
     lcd.setCursor(0, 0);
     lcd.print("~");
   }
 }
+
 void menu_init() {
   lcd.begin(16,2);
   lcd.print("~ Station: ");
@@ -65,12 +72,6 @@ void radio_init() {
 
   Wire.begin();
   Wire.beginTransmission(0x60); // 0X60 is the module address
-  // Wire.write(0x2A);
-  // Wire.write(0x36);
-  // Wire.write(0x10);
-  // Wire.write(0x10);
-  // Wire.write(0x40);
-
   Wire.write(frequencyH);
   Wire.write(frequencyL);
   Wire.write(0xB0);
@@ -95,11 +96,22 @@ void loop() {
     if (digitalRead(DT) != current_clk) {
       counter ++;
       c_direction = "CW";
+      // ADVANCE FORWARDS
+      if (control == CONTROL_STATION){
+        Serial.print("increasing station");
+      } else {
+        Serial.print("increasing vol");
+      }
     } else {
       counter --;
       c_direction = "CCW";
+      // ADVANCE BACKWARDS
+      if (control == CONTROL_STATION){
+          Serial.print("decreasing station");
+        } else {
+          Serial.print("decreasing vol");
+        }
     }
-
     Serial.print("Direction: ");
     Serial.print(c_direction);
     Serial.print(" | Counter: ");
@@ -112,7 +124,7 @@ void loop() {
   if (btn_state == LOW){
     if (millis() - last_btn_press > 50){
       Serial.println("Click.");
-      set_displaymode(disp_mode);
+      set_controlstate(control);
     }
     last_btn_press = millis(); 
   }
